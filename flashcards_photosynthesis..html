@@ -1,0 +1,111 @@
+
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Flashcards: photosynthesis.</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f0f0f0;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        .container {
+                            max-width: 800px;
+                            margin: 0 auto;
+                            background-color: white;
+                            padding: 20px;
+                            border-radius: 10px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            text-align: center;
+                            color: #333;
+                        }
+                        .flashcard {
+                            background-color: #fff;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            padding: 15px;
+                            margin: 10px 0;
+                            cursor: pointer;
+                            transition: transform 0.2s;
+                        }
+                        .flashcard:hover {
+                            transform: scale(1.02);
+                        }
+                        .flashcard-front {
+                            font-weight: bold;
+                            font-size: 16px;
+                        }
+                        .flashcard-back {
+                            display: none;
+                            font-size: 14px;
+                            color: #555;
+                        }
+                        .flashcard.flipped .flashcard-front {
+                            display: none;
+                        }
+                        .flashcard.flipped .flashcard-back {
+                            display: block;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Flashcards: photosynthesis.</h1>
+                        <div id="flashcards-container">
+                
+                            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                                <div class="flashcard-front">
+                                    1. What is photosynthesis?
+                                </div>
+                                <div class="flashcard-back">
+                                    The process plants use to convert light energy into chemical energy (food).
+                                </div>
+                            </div>
+                    
+                            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                                <div class="flashcard-front">
+                                    2. What are the primary reactants in photosynthesis?
+                                </div>
+                                <div class="flashcard-back">
+                                    Water and carbon dioxide.
+                                </div>
+                            </div>
+                    
+                            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                                <div class="flashcard-front">
+                                    3. Where does photosynthesis primarily take place?
+                                </div>
+                                <div class="flashcard-back">
+                                    In the chloroplasts within plant cells.
+                                </div>
+                            </div>
+                    
+                            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                                <div class="flashcard-front">
+                                    4. What is the primary product of photosynthesis?
+                                </div>
+                                <div class="flashcard-back">
+                                    Glucose (sugar) and oxygen.
+                                </div>
+                            </div>
+                    
+                            <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                                <div class="flashcard-front">
+                                    5. Why is photosynthesis important for life on Earth?
+                                </div>
+                                <div class="flashcard-back">
+                                    It produces oxygen and forms the base of most food chains.
+                                </div>
+                            </div>
+                    
+                        </div>
+                    </div>
+                    <script>
+                        // No additional JavaScript needed for this simple implementation
+                    </script>
+                </body>
+                </html>
+                
