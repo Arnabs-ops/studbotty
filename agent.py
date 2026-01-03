@@ -25,7 +25,8 @@ class Agent:
 
     def register_tool(self, tool: Tool):
         self.tools[tool.name] = tool
-        logger.info(f"Registered tool: {tool.name}")
+        # Suppress tool registration logs to avoid cluttering the console
+        # logger.info(f"Registered tool: {tool.name}")
 
     def parse_intent(self, user_input: str) -> Dict[str, Any]:
         """

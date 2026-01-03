@@ -68,76 +68,114 @@ def print_welcome():
         print("=" * 30)
         print("Welcome to StudBotty!")
         print("Your AI Study Companion.")
-        print("Type :help for commands.")
+        print("Type :help for onboarding.")
         print("=" * 30)
     else:
         console.print(Panel.fit(
             "[bold blue]Welcome to StudBotty![/bold blue]\n"
             "Your AI Study Companion.\n"
-            "Type [bold cyan]:help[/bold cyan] for commands.",
+            "Type [bold cyan]:help[/bold cyan] for onboarding.",
             title="StudBotty",
             border_style="blue"
         ))
 
 def print_help():
+    """Interactive onboarding system for StudBotty tools and commands."""
     if force_simple_output:
-        help_text = """
-Commands:
-- :help       Show this help message
-- :quit       Exit the application
-- :tools      List available tools
-- :history    Show session history (not implemented yet)
-- :profile    Manage user profile (see usage below)
-- :topics     Show important topics
-- :preferences Manage learning preferences
-- enable voice mode  Enable voice mode (TTS)
-- disable voice mode  Disable voice mode
-- voice mode on/off   Turn voice mode on or off
-
-Profile Commands:
-- :profile set key value    Set profile field
-- :profile get key          Get profile field
-- :profile show             Show all profile data
-
-Examples:
-- "Explain photosynthesis"
-- "Solve 2 + 2"
-- "Quiz me on python"
-- "Visualize a binary tree"
-- "Speak hello world" or "TTS hello world"
-- "Say this text will be spoken aloud"
-- "enable voice mode" - Simple voice mode activation
-        """
-        print(help_text)
+        # Simple text version for basic terminals
+        print("\n" + "=" * 60)
+        print("           🚀 STUDBOTTY ONBOARDING GUIDE 🚀")
+        print("=" * 60)
+        print("\n🎯 QUICK START:")
+        print("   Type any question or command to get started!")
+        print("\n📋 AVAILABLE TOOLS:")
+        print("   • Quiz Tool     - Test your knowledge with interactive quizzes")
+        print("   • Math Tool     - Solve equations and calculations")
+        print("   • Viz Tool      - Create diagrams and visualizations")
+        print("   • Search Tool   - Find information online")
+        print("   • Files Tool    - Read and analyze files")
+        print("   • Flashcards    - Create study flashcards")
+        print("   • Chat Tool     - General Q&A and explanations")
+        print("   • TTS Tool      - Text-to-speech for reading aloud")
+        print("\n🎮 COMMANDS:")
+        print("   :help          - Show this guide")
+        print("   :quit          - Exit StudBotty")
+        print("   :tools         - List all available tools")
+        print("   :profile       - Manage your profile")
+        print("   :topics        - Show important topics")
+        print("   :preferences   - Set learning preferences")
+        print("\n🔊 VOICE MODE:")
+        print("   enable voice mode    - Turn on speech output")
+        print("   disable voice mode   - Turn off speech output")
+        print("\n💡 EXAMPLES:")
+        print("   'Explain photosynthesis'           → Chat Tool")
+        print("   'Quiz me on python'                → Quiz Tool")
+        print("   'Solve 2 + 2'                      → Math Tool")
+        print("   'Visualize a binary tree'          → Viz Tool")
+        print("   'Search quantum computing'         → Search Tool")
+        print("   'Read file.txt'                    → Files Tool")
+        print("   'Create flashcards on biology'     → Flashcards")
+        print("   'Speak hello world'                → TTS Tool")
+        print("\n🎯 TIPS:")
+        print("   • Be specific with your requests")
+        print("   • Use natural language")
+        print("   • Try different tools for different needs")
+        print("   • Enable voice mode for audio learning")
+        print("\n" + "=" * 60)
+        print("           Ready to start learning? 📚")
+        print("=" * 60)
     else:
-        help_text = """
-    [bold]Commands:[/bold]
-    - [cyan]:help[/cyan]       Show this help message
-    - [cyan]:quit[/cyan]       Exit the application
-    - [cyan]:tools[/cyan]      List available tools
-    - [cyan]:history[/cyan]    Show session history (not implemented yet)
-    - [cyan]:profile[/cyan]    Manage user profile (see usage below)
-    - [cyan]:topics[/cyan]     Show important topics
-    - [cyan]:preferences[/cyan] Manage learning preferences
-    - [cyan]enable voice mode[/cyan]  Enable voice mode (TTS)
-    - [cyan]disable voice mode[/cyan] Disable voice mode
-    - [cyan]voice mode on/off[/cyan]   Turn voice mode on or off
-    
-    [bold]Profile Commands:[/bold]
-    - [cyan]:profile set key value[/cyan]    Set profile field
-    - [cyan]:profile get key[/cyan]          Get profile field
-    - [cyan]:profile show[/cyan]             Show all profile data
-    
-    [bold]Examples:[/bold]
-    - "Explain photosynthesis"
-    - "Solve 2 + 2"
-    - "Quiz me on python"
-    - "Visualize a binary tree"
-    - "Speak hello world" or "TTS hello world"
-    - "Say this text will be spoken aloud"
-    - "enable voice mode" - Simple voice mode activation
-    """
-        console.print(help_text, markup=True)
+        # Rich formatted version with colors and emojis
+        console.print(Panel.fit(
+            "[bold blue]🚀 STUDBOTTY ONBOARDING GUIDE 🚀[/bold blue]",
+            border_style="blue"
+        ))
+        
+        console.print("\n[bold]🎯 QUICK START:[/bold]")
+        console.print("   Type any question or command to get started!")
+        
+        console.print("\n[bold]📋 AVAILABLE TOOLS:[/bold]")
+        console.print("   • [green]Quiz Tool[/green]     - Test your knowledge with interactive quizzes")
+        console.print("   • [green]Math Tool[/green]     - Solve equations and calculations")
+        console.print("   • [green]Viz Tool[/green]      - Create diagrams and visualizations")
+        console.print("   • [green]Search Tool[/green]   - Find information online")
+        console.print("   • [green]Files Tool[/green]    - Read and analyze files")
+        console.print("   • [green]Flashcards[/green]    - Create study flashcards")
+        console.print("   • [green]Chat Tool[/green]     - General Q&A and explanations")
+        console.print("   • [green]TTS Tool[/green]      - Text-to-speech for reading aloud")
+        
+        console.print("\n[bold]🎮 COMMANDS:[/bold]")
+        console.print("   [cyan]:help[/cyan]          - Show this guide")
+        console.print("   [cyan]:quit[/cyan]          - Exit StudBotty")
+        console.print("   [cyan]:tools[/cyan]         - List all available tools")
+        console.print("   [cyan]:profile[/cyan]       - Manage your profile")
+        console.print("   [cyan]:topics[/cyan]        - Show important topics")
+        console.print("   [cyan]:preferences[/cyan]   - Set learning preferences")
+        
+        console.print("\n[bold]🔊 VOICE MODE:[/bold]")
+        console.print("   [yellow]enable voice mode[/yellow]    - Turn on speech output")
+        console.print("   [yellow]disable voice mode[/yellow]   - Turn off speech output")
+        
+        console.print("\n[bold]💡 EXAMPLES:[/bold]")
+        console.print("   [italic]'Explain photosynthesis'[/italic]           → [green]Chat Tool[/green]")
+        console.print("   [italic]'Quiz me on python'[/italic]                → [green]Quiz Tool[/green]")
+        console.print("   [italic]'Solve 2 + 2'[/italic]                      → [green]Math Tool[/green]")
+        console.print("   [italic]'Visualize a binary tree'[/italic]          → [green]Viz Tool[/green]")
+        console.print("   [italic]'Search quantum computing'[/italic]         → [green]Search Tool[/green]")
+        console.print("   [italic]'Read file.txt'[/italic]                    → [green]Files Tool[/green]")
+        console.print("   [italic]'Create flashcards on biology'[/italic]     → [green]Flashcards[/green]")
+        console.print("   [italic]'Speak hello world'[/italic]                → [green]TTS Tool[/green]")
+        
+        console.print("\n[bold]🎯 TIPS:[/bold]")
+        console.print("   • Be specific with your requests")
+        console.print("   • Use natural language")
+        console.print("   • Try different tools for different needs")
+        console.print("   • Enable voice mode for audio learning")
+        
+        console.print(Panel.fit(
+            "[bold green]Ready to start learning? 📚[/bold green]",
+            border_style="green"
+        ))
 
 def speak(text):
     """Convert text to speech, excluding emojis"""
