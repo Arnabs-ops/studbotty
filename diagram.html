@@ -121,40 +121,57 @@
             <div class="diagram-container">
                 <div class="mermaid">
                     graph TD
-sunlight[Light Reactions]
+WaterSplitting[Watersplitting]
 Water[Water]
 Sunlight[Light Reactions]
-Photosystems[Photosystems]
-Photolysis[Photolysis]
-Oxygen[Oxygen]
+Output[Output]
 NADPH[Nadph]
+LightWaveSpectrum[Light Reactions]
 LightReactions[Light Reactions]
 LightEnergy[Light Reactions]
+LightAbsorption[Light Reactions]
+Input[Input]
 Glucose[Glucose]
-G3P[G3P]
 Electrons[Electron Transport]
-ElectronTransportChain[Electron Transport]
-Chloroplasts[Chloroplasts]
+ElectronTransport[Electron Transport]
+Chloroplast[Chloroplast]
 Chlorophyll[Chlorophyll]
+Carbon[Carbon Fixation]
 CalvinCycle[Calvincycle]
 ATP[ATP Production]
-sunlight --> LightEnergy
-LightEnergy --> Chloroplasts
-Chloroplasts --> Water
-Water --> LightEnergy
-LightEnergy --> Photosystems
-Photosystems --> LightReactions
-LightReactions --> Chlorophyll
-LightReactions --> Photolysis
-Photolysis --> Electrons
-Photolysis --> Oxygen
-ElectronTransportChain --> ATP
-ElectronTransportChain --> NADPH
-ATP --> CalvinCycle
-NADPH --> CalvinCycle
-CalvinCycle --> G3P
-G3P --> Glucose
-Sunlight --> Chloroplasts
+direction TB
+subgraph What is Photosynthesis?
+Sunlight --> LightEnergy
+LightEnergy --> Chlorophyll
+Chlorophyll --> LightWaveSpectrum
+LightWaveSpectrum --> LightAbsorption
+LightAbsorption --> Chlorophyll
+LightAbsorption --> Chlorophyll
+LightAbsorption --> Sunlight
+end
+subgraph Layer 1: Processes & Steps
+LightReactions --> WaterSplitting
+WaterSplitting --> Electrons
+Electrons --> CalvinCycle
+CalvinCycle --> Carbon
+Carbon --> Glucose
+subgraph Layer 2: Key Components & Roles
+Chloroplast --> Chloroplast
+Chloroplast --> Chlorophyll
+Chlorophyll --> LightEnergy
+Chlorophyll --> Sunlight
+Sunlight --> WaterSplitting
+Sunlight --> ElectronTransport
+ElectronTransport --> ATP
+ElectronTransport --> NADPH
+ElectronTransport --> Carbon
+Carbon --> Glucose
+subgraph Layer 3: Inputs & Outputs
+Input --> Sunlight
+Input --> Water
+Input --> Carbon
+Output --> Glucose
+linkStyle default
                 </div>
             </div>
         </div>

@@ -1,7 +1,9 @@
 import logging
-from typing import Dict, Any, List
+import json
+import os
+from typing import Dict, Any, List, Optional
 from tools.base import Tool
-from tools import QuizTool, MathTool, VizTool, SearchTool, FilesTool, AnkiTool, PersistTool, ChatTool, TTSTool, ContextManagerTool
+from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -9,167 +11,87 @@ class Agent:
     def __init__(self):
         self.tools: Dict[str, Tool] = {}
         self.conversation_history: List[Dict[str, str]] = []
-        self.register_tools()
+        self.discover_and_register_tools()
 
-    def register_tools(self):
-        self.register_tool(QuizTool())
-        self.register_tool(MathTool())
-        self.register_tool(VizTool())
-        self.register_tool(SearchTool())
-        self.register_tool(FilesTool())
-        self.register_tool(AnkiTool())
-        self.register_tool(PersistTool())
-        self.register_tool(ChatTool())
-        self.register_tool(TTSTool())
-        self.register_tool(ContextManagerTool())
+    def discover_and_register_tools(self):
+        """Dynamically discover and register tools from the tools directory."""
+        tools_dir = os.path.join(os.path.dirname(__file__), "tools")
+        for filename in os.listdir(tools_dir):
+            if filename.endswith(".py") and filename not in ["__init__.py", "base.py", "persist.py"]:
+                module_name = f"tools.{filename[:-3]}"
+                try:
+                    module = __import__(module_name, fromlist=["*"])
+                    for attr_name in dir(module):
+                        attr = getattr(module, attr_name)
+                        if (isinstance(attr, type) and 
+                            issubclass(attr, Tool) and 
+                            attr is not Tool):
+                            tool_instance = attr()
+                            self.register_tool(tool_instance)
+                except Exception as e:
+                    logger.error(f"Failed to load tool from {module_name}: {e}")
 
     def register_tool(self, tool: Tool):
         self.tools[tool.name] = tool
-        # Suppress tool registration logs to avoid cluttering the console
-        # logger.info(f"Registered tool: {tool.name}")
+        logger.debug(f"Registered tool: {tool.name}")
+
+    def _get_tools_specification(self) -> str:
+        """Generate a string representation of available tools and their schemas."""
+        specs = []
+        for name, tool in self.tools.items():
+            spec = {
+                "name": name,
+                "description": tool.description,
+                "parameters": tool.input_schema
+            }
+            specs.append(spec)
+        return json.dumps(specs, indent=2)
 
     def parse_intent(self, user_input: str) -> Dict[str, Any]:
         """
-        Parse the user input to determine the intent and arguments.
-        For now, we will use a simple rule-based approach or LLM call.
+        Parse the user input using LLM to determine the intent and arguments.
         """
-        user_input_lower = user_input.lower().strip()
-        
-        # Check for specific tool keywords first
-        if any(keyword in user_input_lower for keyword in ["quiz", "start quiz", "take quiz", "quiz me", "make a quiz", "create quiz", "generate quiz"]):
-            # Extract topic from various quiz patterns
-            topic = ""
+        try:
+            import ollama
             
-            # Handle "make a quiz on [topic]" and "create quiz about [topic]" patterns
-            if "on " in user_input_lower:
-                topic = user_input.split("on ", 1)[1].strip()
-            elif "about " in user_input_lower:
-                topic = user_input.split("about ", 1)[1].strip()
-            elif "make a quiz" in user_input_lower or "create quiz" in user_input_lower or "generate quiz" in user_input_lower:
-                # For "make a quiz [topic]" pattern, extract after the command
-                for prefix in ["make a quiz ", "create quiz ", "generate quiz "]:
-                    if user_input_lower.startswith(prefix.lower()):
-                        topic = user_input[len(prefix):].strip()
-                        break
-            else:
-                # Handle simple patterns like "quiz me on [topic]", "take quiz [topic]", etc.
-                if "quiz me" in user_input_lower:
-                    if "on " in user_input_lower:
-                        topic = user_input.split("on ", 1)[1].strip()
-                    else:
-                        topic = user_input_lower.replace("quiz me", "").strip()
-                elif "take quiz" in user_input_lower:
-                    if "on " in user_input_lower:
-                        topic = user_input.split("on ", 1)[1].strip()
-                    else:
-                        topic = user_input_lower.replace("take quiz", "").strip()
-                elif "start quiz" in user_input_lower:
-                    topic = user_input_lower.replace("start quiz", "").strip()
-                else:
-                    # Fallback to simple keyword removal
-                    topic = user_input_lower.replace("quiz", "").replace("start", "").replace("take", "").replace("me", "").replace("make a", "").replace("create", "").replace("generate", "").strip()
+            tools_spec = self._get_tools_specification()
+            enhanced_context = self.get_enhanced_chat_context()
             
-            return {"intent": "quiz", "args": {"topic": topic, "level": "medium", "count": 5}}
-        elif any(keyword in user_input_lower for keyword in ["flashcards", "flashcard", "anki", "study cards"]):
-            # Handle flashcards with improved natural language parsing
+            system_prompt = f"""You are a tool router for StudBotty. Your job is to analyze the user's input and decide which tool to call and with what arguments.
+
+AVAILABLE TOOLS:
+{tools_spec}
+
+USER CONTEXT:
+{json.dumps(enhanced_context.get('enhanced_context', {}), indent=2)}
+
+RESPONSE FORMAT:
+Return ONLY a JSON object with the following structure:
+{{
+  "intent": "tool_name",
+  "args": {{ ... }}
+}}
+
+If no specific tool matches, use "chat" with the "message" argument.
+If the user wants to see a diagram or visualize something, ALWAYS use the "viz" tool.
+If the user wants a quiz, use the "quiz" tool.
+"""
             
-            # Check for list commands first
-            if any(cmd in user_input_lower for cmd in ["list", "show", "display"]):
-                return {"intent": "flashcards", "args": {"action": "list", "deck": None}}
+            response = ollama.chat(
+                model=config.OLLAMA_MODEL,
+                messages=[
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': user_input}
+                ],
+                format='json'
+            )
             
-            # Extract topic and action from various patterns
-            topic = ""
-            action = "generate"  # Default action
+            intent_data = json.loads(response['message']['content'])
+            return intent_data
             
-            # Handle "create flashcards for [topic]" pattern
-            if " for " in f" {user_input_lower} ":
-                topic = user_input.split(" for ", 1)[1].strip()
-            elif " about " in f" {user_input_lower} ":
-                topic = user_input.split(" about ", 1)[1].strip()
-            elif " on " in f" {user_input_lower} ":
-                topic = user_input.split(" on ", 1)[1].strip()
-            elif any(prefix in user_input_lower for prefix in ["create ", "make ", "generate "]):
-                # Handle "create flashcards [topic]" pattern
-                for prefix in ["create ", "make ", "generate "]:
-                    if user_input_lower.startswith(prefix.lower()):
-                        remaining = user_input[len(prefix):].strip()
-                        # Remove flashcards/flashcard/anki/study cards/cards from remaining text
-                        topic = remaining.replace("flashcards", "").replace("flashcard", "").replace("anki", "").replace("study cards", "").replace("cards", "").strip()
-                        break
-            else:
-                # Fallback: extract topic by removing command words
-                topic = user_input_lower.replace("flashcards", "").replace("flashcard", "").replace("anki", "").replace("study cards", "").replace("cards", "").replace("create", "").replace("make", "").replace("generate", "").strip()
-            
-            return {"intent": "flashcards", "args": {"action": action, "topic": topic}}
-        elif any(keyword in user_input_lower for keyword in ["solve", "calculate", "compute", "math"]):
-            expression = user_input_lower.replace("solve", "").replace("calculate", "").replace("compute", "").replace("math", "").strip()
-            return {"intent": "math", "args": {"expression": expression}}
-        elif any(keyword in user_input_lower for keyword in ["search", "look up", "find", "google"]):
-            query = user_input_lower.replace("search", "").replace("look up", "").replace("find", "").replace("google", "").strip()
-            return {"intent": "search", "args": {"query": query}}
-        elif any(keyword in user_input_lower for keyword in ["read", "open", "view", "show file"]):
-            path = user_input_lower.replace("read", "").replace("open", "").replace("view", "").replace("show file", "").strip()
-            return {"intent": "files", "args": {"path": path}}
-        elif any(keyword in user_input_lower for keyword in ["flashcards", "flashcard", "anki", "study cards"]):
-            # Handle flashcards with improved natural language parsing
-            
-            # Check for list commands first
-            if any(cmd in user_input_lower for cmd in ["list", "show", "display"]):
-                return {"intent": "flashcards", "args": {"action": "list", "deck": None}}
-            
-            # Extract topic and action from various patterns
-            topic = ""
-            action = "generate"  # Default action
-            
-            # Handle "create flashcards for [topic]" pattern
-            if "for " in user_input_lower:
-                topic = user_input.split("for ", 1)[1].strip()
-            elif "about " in user_input_lower:
-                topic = user_input.split("about ", 1)[1].strip()
-            elif "on " in user_input_lower:
-                topic = user_input.split("on ", 1)[1].strip()
-            elif any(prefix in user_input_lower for prefix in ["create ", "make ", "generate "]):
-                # Handle "create flashcards [topic]" pattern
-                for prefix in ["create ", "make ", "generate "]:
-                    if user_input_lower.startswith(prefix.lower()):
-                        topic = user_input[len(prefix):].strip()
-                        # Remove flashcards/flashcard/anki/study cards from topic
-                        topic = topic.replace("flashcards", "").replace("flashcard", "").replace("anki", "").replace("study cards", "").strip()
-                        break
-            else:
-                # Fallback: extract topic by removing command words
-                topic = user_input_lower.replace("flashcards", "").replace("flashcard", "").replace("anki", "").replace("study cards", "").replace("create", "").replace("make", "").replace("generate", "").strip()
-            
-            return {"intent": "flashcards", "args": {"action": action, "topic": topic}}
-        
-        # Check for visualization keywords (before generic question patterns)
-        elif any(keyword in user_input_lower for keyword in ["visualize", "visualization", "diagram", "draw", "chart", "graph", "flowchart", "show me", "make a diagram", "make a chart", "make a graph", "make a flowchart", "viz", "viz tool", "create diagram", "create chart", "create graph", "create flowchart"]):
-            # Extract the content after visualization keywords
-            content = user_input
-            for keyword in ["visualize ", "visualization of ", "visualization ", "make a visualization of ", "make a diagram of ", "make a diagram ", "diagram of ", "draw ", "chart of ", "graph of ", "flowchart of ", "show me ", "make a chart ", "make a graph ", "make a flowchart ", "viz ", "viz tool ", "create diagram ", "create chart ", "create graph ", "create flowchart "]:
-                if keyword in user_input_lower:
-                    idx = user_input_lower.find(keyword)
-                    content = user_input[idx + len(keyword):].strip()
-                    break
-            return {"intent": "viz", "args": {"content": content, "kind": "mermaid"}}
-        
-        # Check for TTS commands
-        elif any(keyword in user_input_lower for keyword in ["speak", "say", "tts", "read aloud", "text to speech", "voice"]):
-            # Extract text after command
-            text = user_input
-            for prefix in ["speak ", "say ", "tts ", "read aloud ", "text to speech ", "voice "]:
-                if user_input_lower.startswith(prefix.lower()):
-                    text = user_input[len(prefix):].strip()
-                    break
-            return {"intent": "tts", "args": {"text": text, "provider": "local"}}
-        
-        # Check for explanation/question patterns
-        elif user_input_lower.startswith(("explain", "what is", "what are", "who is", "who are", "how does", "how do", "why")):
-            # Route explanation/question queries to chat tool
-            return {"intent": "chat", "args": {"message": user_input}}
-        
-        # Default to chat for everything else
-        else:
+        except Exception as e:
+            logger.error(f"Error parsing intent: {e}")
+            # Fallback to chat if LLM parsing fails
             return {"intent": "chat", "args": {"message": user_input}}
 
     def route_and_execute(self, intent_data: Dict[str, Any]) -> Any:
@@ -195,6 +117,8 @@ class Agent:
                     result = self.tools[intent].execute(**args)
                 
                 return result
+            else:
+                return f"Error: Tool '{intent}' not found."
         except Exception as e:
             logger.error(f"Error executing intent {intent}: {e}")
             return f"Error: {str(e)}"
@@ -210,14 +134,11 @@ class Agent:
             "content": bot_response
         })
         
-        # Limit conversation history to prevent memory issues
-        # Keep last 20 exchanges (40 messages total)
         if len(self.conversation_history) > 40:
             self.conversation_history = self.conversation_history[-40:]
     
     def get_conversation_context(self, max_messages: int = 10) -> List[Dict[str, str]]:
-        """Get recent conversation context for maintaining continuity."""
-        # Return most recent messages, up to max_messages
+        """Get recent conversation context."""
         return self.conversation_history[-max_messages:] if self.conversation_history else []
     
     def get_enhanced_chat_context(self, max_messages: int = 10) -> Dict[str, Any]:
